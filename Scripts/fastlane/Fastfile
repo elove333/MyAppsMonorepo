@@ -1,0 +1,103 @@
+default_platform(:ios)
+
+platform :ios do
+
+  # ─── Build lanes ─────────────────────────────────────────────────────────────
+
+  desc "Build StepFlow for simulator"
+  lane :build_stepflow do
+    xcodebuild(
+      scheme: "StepFlow",
+      workspace: "../../MyAppsMonorepo.xcworkspace",
+      destination: "generic/platform=iOS Simulator",
+      xcargs: "-skipPackagePluginValidation",
+      build_settings: { "CODE_SIGNING_ALLOWED" => "NO" }
+    )
+  end
+
+  desc "Build PotentiaLudi for simulator"
+  lane :build_potentialudi do
+    xcodebuild(
+      scheme: "PotentiaLudi",
+      workspace: "../../MyAppsMonorepo.xcworkspace",
+      destination: "generic/platform=iOS Simulator",
+      xcargs: "-skipPackagePluginValidation",
+      build_settings: { "CODE_SIGNING_ALLOWED" => "NO" }
+    )
+  end
+
+  desc "Build MadMech for simulator"
+  lane :build_madmech do
+    xcodebuild(
+      scheme: "MadMech",
+      workspace: "../../MyAppsMonorepo.xcworkspace",
+      destination: "generic/platform=iOS Simulator",
+      xcargs: "-skipPackagePluginValidation",
+      build_settings: { "CODE_SIGNING_ALLOWED" => "NO" }
+    )
+  end
+
+  # ─── Release lanes ───────────────────────────────────────────────────────────
+
+  desc "Archive StepFlow and upload to TestFlight"
+  lane :release_stepflow do
+    match(type: "appstore", app_identifier: "com.myappsmonorepo.stepflow")
+    gym(
+      scheme: "StepFlow",
+      workspace: "../../MyAppsMonorepo.xcworkspace",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "StepFlow.ipa"
+    )
+    pilot(
+      app_identifier: "com.myappsmonorepo.stepflow",
+      ipa: "./build/StepFlow.ipa",
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Archive PotentiaLudi and upload to TestFlight"
+  lane :release_potentialudi do
+    match(type: "appstore", app_identifier: "com.myappsmonorepo.potentialudi")
+    gym(
+      scheme: "PotentiaLudi",
+      workspace: "../../MyAppsMonorepo.xcworkspace",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "PotentiaLudi.ipa"
+    )
+    pilot(
+      app_identifier: "com.myappsmonorepo.potentialudi",
+      ipa: "./build/PotentiaLudi.ipa",
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  desc "Archive MadMech and upload to TestFlight"
+  lane :release_madmech do
+    match(type: "appstore", app_identifier: "com.myappsmonorepo.madmech")
+    gym(
+      scheme: "MadMech",
+      workspace: "../../MyAppsMonorepo.xcworkspace",
+      export_method: "app-store",
+      output_directory: "./build",
+      output_name: "MadMech.ipa"
+    )
+    pilot(
+      app_identifier: "com.myappsmonorepo.madmech",
+      ipa: "./build/MadMech.ipa",
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+  # ─── Test lane ───────────────────────────────────────────────────────────────
+
+  desc "Run unit tests for all SPM packages"
+  lane :test_all do
+    packages = %w[CoreUI CoreNetworking CoreAnalytics ARHelpers BluetoothHelpers Web3Helpers]
+    packages.each do |pkg|
+      sh("swift test --package-path ../../Packages/#{pkg} --parallel")
+    end
+  end
+
+end

@@ -1,0 +1,55 @@
+name: iOS Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  release:
+    name: Release ${{ matrix.app }}
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: StepFlow
+            lane: release_stepflow
+          - app: PotentiaLudi
+            lane: release_potentialudi
+          - app: MadMech
+            lane: release_madmech
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 15
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      - name: Install mise
+        uses: jdx/mise-action@v2
+        with:
+          experimental: true
+
+      - name: Install Tuist
+        run: mise install tuist
+
+      - name: Install Fastlane
+        run: gem install fastlane --no-document
+
+      - name: Tuist install
+        run: tuist install
+
+      - name: Tuist generate workspace
+        run: tuist generate --no-open
+
+      - name: Release ${{ matrix.app }} via Fastlane
+        working-directory: Scripts/fastlane
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
+        run: fastlane ${{ matrix.lane }}

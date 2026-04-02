@@ -1,0 +1,11 @@
+git_url("https://github.com/your-org/certificates")
+storage_mode("git")
+type("development")
+
+app_identifier([
+  "com.myappsmonorepo.stepflow",
+  "com.myappsmonorepo.potentialudi",
+  "com.myappsmonorepo.madmech"
+])
+
+# username("your@apple.id")
