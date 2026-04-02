@@ -4,7 +4,9 @@ import Foundation
 /// Automatically evicts entries when the app receives a memory-pressure warning.
 public actor ResponseCache {
     private let cache = NSCache<NSURL, NSData>()
-    private var memoryWarningObserver: NSObjectProtocol?
+    // Stored as nonisolated(unsafe) so that deinit can access it without actor isolation.
+    // NSNotificationCenter observer removal is itself thread-safe.
+    nonisolated(unsafe) private var memoryWarningObserver: NSObjectProtocol?
 
     public init(countLimit: Int = 200, totalCostLimit: Int = 50 * 1024 * 1024) {
         cache.countLimit = countLimit
