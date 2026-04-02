@@ -14,7 +14,7 @@ extension BluetoothError: LocalizedError {
         case .notSupported:
             return "Bluetooth is not supported on this device."
         case .notAuthorized:
-            return "Bluetooth access has not been authorised. Please enable it in Settings."
+            return "Bluetooth access has not been authorized. Please enable it in Settings."
         case .connectionFailed(let reason):
             return "Connection failed: \(reason)"
         case .pidParseFailed:

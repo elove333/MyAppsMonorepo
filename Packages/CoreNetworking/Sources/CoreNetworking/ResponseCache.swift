@@ -4,18 +4,29 @@ import Foundation
 /// Automatically evicts entries when the app receives a memory-pressure warning.
 public actor ResponseCache {
     private let cache = NSCache<NSURL, NSData>()
+    private var memoryWarningObserver: NSObjectProtocol?
 
     public init(countLimit: Int = 200, totalCostLimit: Int = 50 * 1024 * 1024) {
         cache.countLimit = countLimit
         cache.totalCostLimit = totalCostLimit
-        Task { @MainActor in
-            NotificationCenter.default.addObserver(
-                forName: UIApplication.didReceiveMemoryWarningNotification,
-                object: nil,
-                queue: .main
-            ) { [weak cache] _ in
-                cache?.removeAllObjects()
-            }
+    }
+
+    /// Starts observing memory-pressure notifications and evicts cached entries on warning.
+    /// Call once after initialisation from a `@MainActor` context.
+    public func startObservingMemoryWarnings() {
+        let cacheRef = cache
+        memoryWarningObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            cacheRef.removeAllObjects()
+        }
+    }
+
+    deinit {
+        if let observer = memoryWarningObserver {
+            NotificationCenter.default.removeObserver(observer)
         }
     }
 
