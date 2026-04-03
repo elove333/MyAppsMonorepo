@@ -1,0 +1,55 @@
+name: Feature request
+description: Suggest a new feature or improvement
+title: "[FEATURE] "
+labels: ["type:feature"]
+
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem are you trying to solve?
+      placeholder: I'm frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      placeholder: What would you like to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      placeholder: Other approaches you've thought about
+
+  - type: dropdown
+    id: app
+    attributes:
+      label: Target app
+      options:
+        - StepFlow
+        - MadMech
+        - PotentiaLudi
+        - Shared (Packages)
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - core
+        - ui
+        - networking
+        - data
+        - platform
+        - features
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
