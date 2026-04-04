@@ -1,0 +1,182 @@
+name: MyAppsMonorepo
+summary: >-
+  A Swift/iOS monorepo containing three production apps and six shared Swift
+  Package Manager libraries, managed with Tuist and automated via GitHub Actions
+  + Fastlane.
+
+repository_structure:
+  root: MyAppsMonorepo
+  directories:
+    - path: Apps/StepFlow
+      description: Step-counting & health tracking app
+    - path: Apps/PotentiaLudi
+      description: AR gaming + Web3/WalletConnect app
+    - path: Apps/MadMech
+      description: OBD2 vehicle diagnostics + AR overlay app
+    - path: Packages/CoreUI
+      description: SwiftUI design system (tokens, themes, components)
+    - path: Packages/CoreNetworking
+      description: URLSession API client, retry/backoff, response cache
+    - path: Packages/CoreAnalytics
+      description: Protocol-based event tracking with adapter pattern
+    - path: Packages/ARHelpers
+      description: ARKit session management, Vision pose detection, holographic overlays
+    - path: Packages/BluetoothHelpers
+      description: CoreBluetooth OBD2 scanner, PID parser, connection state machine
+    - path: Packages/Web3Helpers
+      description: WalletConnect v2, SIWE auth, on-chain reads, swap quotes
+    - path: Tuist
+      description: Tuist workspace, config, and dependency manifests
+    - path: Scripts/fastlane
+      description: Build, test, and release automation
+    - path: .github/workflows
+      description: GitHub Actions CI and release pipelines
+
+prerequisites:
+  - tool: Xcode
+    version: "15.x"
+  - tool: Swift
+    version: "5.9+"
+  - tool: mise
+    version: latest
+    url: https://mise.jdx.dev
+  - tool: Tuist
+    version: via mise
+    url: https://tuist.io
+  - tool: Fastlane
+    version: via RubyGems
+
+install:
+  - description: Install mise and Tuist
+    commands:
+      - brew install mise
+      - mise install tuist
+
+getting_started:
+  - step: Clone the repo
+    commands:
+      - git clone https://github.com/your-org/MyAppsMonorepo.git
+      - cd MyAppsMonorepo
+  - step: Install SPM dependencies via Tuist
+    commands:
+      - tuist install
+  - step: Generate the Xcode workspace
+    commands:
+      - tuist generate
+  - step: Open in Xcode
+    commands:
+      - open MyAppsMonorepo.xcworkspace
+
+packages:
+  CoreUI:
+    description: SwiftUI design system
+    provides:
+      - ColorTokens
+      - TypographyTokens
+      - SpacingTokens
+      - AppTheme
+      - PrimaryButton
+      - CardView
+      - LoadingIndicator
+  CoreNetworking:
+    description: Type-safe URLSession networking
+    provides:
+      - APIClient (protocol)
+      - URLSessionClient (actor)
+      - RetryPolicy (exponential back-off)
+      - ResponseCache
+      - NetworkError
+  CoreAnalytics:
+    description: Adapter-pattern analytics
+    provides:
+      - AnalyticsManager (actor)
+      - ConsoleAnalyticsAdapter
+      - lifecycle events
+  ARHelpers:
+    description: ARKit wrappers and Vision-based pose detection
+    provides:
+      - ARSessionManager
+      - PoseDetector
+      - HolographicOverlay (SwiftUI view)
+    notes:
+      - All types guarded with "#if canImport(ARKit)"
+  BluetoothHelpers:
+    description: CoreBluetooth OBD2 integration
+    provides:
+      - OBD2Scanner
+      - PIDParser (RPM, speed, coolant temp, throttle)
+      - ConnectionStateMachine (actor)
+  Web3Helpers:
+    description: WalletConnect v2, SIWE auth, and Web3 utilities
+    provides:
+      - WalletConnectManager
+      - SIWEAuthManager
+      - SIWEMessage (EIP-4361)
+      - OnChainReader (JSON-RPC)
+      - SwapQuoteProvider
+      - Web3Error
+
+apps:
+  StepFlow:
+    description: Step-counting app with onboarding flow, animated dashboard, and weekly progress chart
+    dependencies:
+      - CoreUI
+      - CoreNetworking
+      - CoreAnalytics
+  PotentiaLudi:
+    description: AR gaming app with WalletConnect v2 integration
+    dependencies:
+      - CoreUI
+      - CoreNetworking
+      - CoreAnalytics
+      - Web3Helpers
+      - ARHelpers
+  MadMech:
+    description: OBD2 vehicle diagnostics app with live BLE data and AR overlay display
+    dependencies:
+      - CoreUI
+      - CoreNetworking
+      - CoreAnalytics
+      - BluetoothHelpers
+      - ARHelpers
+
+tests:
+  local:
+    - description: Individual package
+      command: swift test --package-path Packages/CoreUI
+    - description: All packages via Fastlane
+      command: cd Scripts/fastlane && fastlane test_all
+
+cicd:
+  continuous_integration:
+    workflow: ios-ci.yml
+    triggers:
+      - pull_request
+      - push_to_main
+    details:
+      - runs: swift test for all six packages in a matrix
+      - runner: macos-14
+  release:
+    workflow: ios-release.yml
+    triggers:
+      - tags: "v*.*.*"
+    details:
+      - archives: each app with gym
+      - uploads: TestFlight via pilot
+    required_secrets:
+      - APP_STORE_CONNECT_KEY_ID
+      - APP_STORE_CONNECT_ISSUER_ID
+      - APP_STORE_CONNECT_API_KEY
+      - MATCH_PASSWORD
+      - MATCH_GIT_BASIC_AUTHORIZATION
+
+contributing:
+  steps:
+    - Create a feature branch
+    - Add or update code and tests in the relevant Package or App
+    - Run swift test for affected packages
+    - Open a pull request (CI runs automatically)
+
+license:
+  name: MIT
+  see: LICENSE
